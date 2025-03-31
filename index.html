@@ -2,50 +2,78 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AR Видео на маркере</title>
     
+    <!-- Обязательные зависимости -->
     <script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@1.4.2/dist/aframe-master.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/3.5.0/aframe/build/aframe-ar-nft.js"></script>
 </head>
 <body style="margin: 0; overflow: hidden;">
+    <!-- AR-сцена с минимальными настройками -->
     <a-scene 
         vr-mode-ui="enabled: false"
-        renderer="logarithmicDepthBuffer: true; precision: medium;"
         embedded
-        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono; matrixCodeType: 3x3;">
-        
+        arjs="sourceType: webcam; detectionMode: mono; matrixCodeType: 3x3;"
+        renderer="antialias: true; alpha: true">
+
+        <!-- Маркер Hiro -->
         <a-marker 
             type="pattern" 
             preset="hiro"
-            emitevents="true" 
-            cursor="rayOrigin: mouse">
-            
-            <a-plane 
-                id="video-plane"
-                position="0 0 0"
-                width="1.6"  <!-- Стандартный размер маркера Hiro 16x16 см -->
-                height="1.6"
+            id="marker"
+            size="0.16"> <!-- Размер в метрах (16 см) -->
+
+            <!-- Видеоплоскость с точной привязкой -->
+            <a-plane
+                position="0 0 0.001" <!-- Слегка приподнять над маркером -->
+                width="0.16"
+                height="0.16"
                 rotation="-90 0 0"
-                material="shader: flat; src: #video-source; transparent: true">
+                material="shader: flat; src: #video-target; transparent: true; opacity: 1">
             </a-plane>
-            
         </a-marker>
-        
+
+        <!-- Статическая камера -->
         <a-entity camera></a-entity>
     </a-scene>
 
+    <!-- Видеоэлемент с обязательными атрибутами -->
     <video 
-        id="video-source" 
+        id="video-target"
         hidden
-        autoplay 
-        muted 
-        playsinline 
-        loop 
+        autoplay
+        muted
+        playsinline
+        loop
         crossorigin="anonymous"
-        style="display: none;">
+        webkit-playsinline>
         <source src="video.mp4" type="video/mp4">
+        Ваш браузер не поддерживает видео тег.
     </video>
 
+    <!-- Скрипт для принудительного запуска видео -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const video = document.getElementById('video-target');
+            
+            // Принудительный запуск видео
+            const playVideo = () => {
+                if (video.paused) {
+                    video.play().catch(error => {
+                        console.log('Автовоспроизведение заблокировано, пытаемся запустить вручную...');
+                        video.muted = true;
+                        video.play();
+                    });
+                }
+            };
+
+            // Запуск при клике на страницу
+            document.body.addEventListener('click', playVideo);
+            
+            // Периодическая проверка статуса
+            setInterval(playVideo, 1000);
+        });
+    </script>
 </body>
 </html>
